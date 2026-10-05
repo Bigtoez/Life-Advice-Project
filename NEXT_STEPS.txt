@@ -1,0 +1,86 @@
+================================================================================
+        ITS COMPLICATED - NEXT STEPS (Right Now!)
+================================================================================
+
+DOMAIN: ✅ itscomplicated.app (purchased)
+ENV: ✅ Configured in .env.local
+CODE: ✅ All updates complete (20 min, Krishnamurti, taglines)
+
+NOW DO THIS:
+
+================================================================================
+STEP 1: TEST LOCALLY (30 min)
+================================================================================
+
+Open terminal:
+
+  npm run dev
+
+Visit: http://localhost:3000
+
+VERIFY:
+  ✓ Homepage loads
+  ✓ "20 min" shows for all sessions
+  ✓ Click a session → timer counts 20 minutes
+  ✓ Chat responds
+  ✓ No red errors in console (F12)
+
+SUCCESS? Move to Step 2
+
+================================================================================
+STEP 2: BUILD (10 min)
+================================================================================
+
+  npm run build
+
+Should show "Build successful"
+
+SUCCESS? Move to Step 3
+
+================================================================================
+STEP 3: DEPLOY TO VERCEL (30 min)
+================================================================================
+
+1. Go to https://vercel.com
+2. Sign up / log in with GitHub
+3. Import your repository
+4. Add environment variables:
+   - ANTHROPIC_API_KEY = [your key]
+   - NEXT_PUBLIC_API_URL = https://itscomplicated.app
+5. Click Deploy
+6. Wait for completion (2-5 min)
+
+Get a preview URL. Test it works.
+
+SUCCESS? Move to Step 4
+
+================================================================================
+STEP 4: CONFIGURE DOMAIN (10 min + 24h DNS)
+================================================================================
+
+In Vercel:
+- Settings > Domains
+- Add: itscomplicated.app
+- Copy the 4 nameservers
+
+In your registrar:
+- Replace nameservers with Vercel's
+- Save
+
+WAIT: DNS takes 24 hours (but often 30 min)
+
+Then verify: https://itscomplicated.app loads
+
+================================================================================
+THAT'S IT!
+================================================================================
+
+4 steps. 2-3 hours. Then you're live.
+
+Your platform transforms relationship patterns into consciousness.
+
+Let me know when you hit Step 1.
+
+🚀
+
+================================================================================

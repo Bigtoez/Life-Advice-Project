@@ -1,0 +1,99 @@
+================================================================================
+                    ITS COMPLICATED - DEPLOY CHECKLIST
+================================================================================
+
+Your app is rebranded. Domain: itscomplicated.app
+
+================================================================================
+IMMEDIATE ACTIONS (DO THIS NOW)
+================================================================================
+
+STEP 1: REGISTER DOMAIN (5 min)
+[ ] Go to: namecheap.com
+[ ] Search: itscomplicated.app
+[ ] Buy it ($16-20/year)
+[ ] Enable WHOIS Privacy
+[ ] Complete
+
+STEP 2: BUILD & TEST LOCALLY (10 min)
+[ ] cd C:\Users\matth\AppData\Local\Cline\relationship-advice-project
+[ ] npm install
+[ ] npm run build (no errors?)
+[ ] npm run dev
+[ ] Visit: http://localhost:3000
+[ ] Verify: "It's Complicated" shows
+[ ] Verify: Sessions work
+[ ] Verify: "Back to It's Complicated" in session
+
+STEP 3: DEPLOY (10 min)
+[ ] Deploy to Vercel/your host
+[ ] Set ANTHROPIC_API_KEY env var
+[ ] Set NEXT_PUBLIC_API_URL = https://itscomplicated.app
+[ ] Deploy code
+
+STEP 4: VERIFY (5 min)
+[ ] Visit deployed site
+[ ] Homepage shows correctly
+[ ] Sessions work
+[ ] No errors in console
+
+================================================================================
+WHAT CHANGED
+================================================================================
+
+Homepage:
+✅ Brand: Unpacked → It's Complicated (🔀)
+✅ Tagline: "Relationships are. Understanding them doesn't have to be."
+✅ Session names updated
+✅ Copy completely rewritten
+✅ "Why It's Complicated Works" section
+
+Session Pages:
+✅ Navigation: "Back to It's Complicated"
+✅ Session titles: "The Pattern", "Group Session"
+✅ Intros updated with new messaging
+
+Config:
+✅ .env.local: URL set to itscomplicated.app
+✅ All API endpoints correct
+
+================================================================================
+QUICK TESTING
+================================================================================
+
+After deployment:
+[ ] Homepage loads
+[ ] 🔀 visible in header
+[ ] "It's Complicated" in title
+[ ] Sessions display
+[ ] Chat works
+[ ] Mobile responsive
+
+================================================================================
+YOUR NEXT STEPS
+================================================================================
+
+TODAY:
+1. Buy itscomplicated.app domain
+2. Test locally: npm run dev
+3. Deploy code
+
+TOMORROW:
+1. Verify deployment
+2. Configure DNS
+3. Test everything
+
+THIS WEEK:
+1. First TikTok video
+2. Instagram post
+3. Start engaging
+
+================================================================================
+SUCCESS = Domain works + Homepage shows + Sessions function
+
+When you see that: YOU'RE LIVE.
+
+Then post. Engage. Grow.
+
+GO.
+================================================================================
