@@ -58,7 +58,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         sessionId,
       });
     } catch (apiError: any) {
-      console.error('Anthropic API error:', apiError);
+      console.error('Anthropic API error:', {
+        status: apiError?.status,
+        message: apiError?.message,
+        error: apiError?.error
+      });
       
       if (apiError?.status === 401) {
         return res.status(401).json({ error: 'Invalid API key' });
@@ -68,7 +72,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(429).json({ error: 'Rate limit exceeded' });
       }
 
-      return res.status(500).json({ error: 'Failed to get AI response', details: apiError?.message });
+      return res.status(500).json({ 
+        error: 'Failed to get AI response', 
+        details: apiError?.message || JSON.stringify(apiError)
+      });
     }
   } catch (error) {
     console.error('Error processing message:', error);
