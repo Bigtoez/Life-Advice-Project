@@ -9,10 +9,10 @@ interface Message {
 }
 
 const SESSION_TITLES: Record<string, string> = {
-  "pattern-break": "The Pattern",
-  "after-fight": "After the Fight",
-  breakup: "Breakup Breakdown",
-  group: "Group Session",
+  "pattern-break": "🔄 The Pattern",
+  "after-fight": "💔 After the Fight",
+  breakup: "💔 Breakup Breakdown",
+  group: "👥 Group Session",
 };
 
 const SESSION_INTROS: Record<string, string> = {
@@ -26,6 +26,7 @@ export default function SessionPage() {
   const router = useRouter();
   const { type } = router.query;
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
@@ -56,6 +57,7 @@ export default function SessionPage() {
         });
 
         setSessionId(response.data.sessionId);
+        setSystemPrompt(response.data.systemPrompt);
         const intro = SESSION_INTROS[type as string] || "Welcome. Let's explore together.";
         setMessages([
           {
@@ -85,7 +87,7 @@ export default function SessionPage() {
   }, [type]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || !sessionId || loading) return;
+    if (!inputValue.trim() || !sessionId || !systemPrompt || loading) return;
 
     const userMessage = inputValue;
     setInputValue("");
@@ -94,18 +96,25 @@ export default function SessionPage() {
 
     try {
       const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
       const response = await axios.post(
         `${apiUrl}/api/sessions/${sessionId}/message`,
-        { message: userMessage }
+        { 
+          message: userMessage,
+          systemPrompt: systemPrompt
+        }
       );
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: response.data.message },
+        { role: "assistant", content: response.data.response },
       ]);
     } catch (error) {
       console.error("Error:", error);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Sorry, I couldn't process that. Please try again." },
+      ]);
     } finally {
       setLoading(false);
     }
