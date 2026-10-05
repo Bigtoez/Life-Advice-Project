@@ -5,7 +5,7 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// In-memory storage - in production use a real database
+// In-memory storage
 const sessions = new Map<string, any>();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -14,14 +14,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { sessionId, message, systemPrompt } = req.body;
+    const { sessionId } = req.query;
+    const { message, systemPrompt } = req.body;
 
     if (!sessionId || !message || !systemPrompt) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     // Get or create session
-    let session = sessions.get(sessionId) || {
+    let session = sessions.get(sessionId as string) || {
       id: sessionId,
       messages: [],
     };
@@ -50,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       // Store session
-      sessions.set(sessionId, session);
+      sessions.set(sessionId as string, session);
 
       return res.status(200).json({
         response: assistantMessage,
@@ -67,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(429).json({ error: 'Rate limit exceeded' });
       }
 
-      return res.status(500).json({ error: 'Failed to get AI response' });
+      return res.status(500).json({ error: 'Failed to get AI response', details: apiError?.message });
     }
   } catch (error) {
     console.error('Error processing message:', error);
