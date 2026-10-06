@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 interface FloatingLetter {
@@ -12,32 +12,26 @@ interface FloatingLetter {
 
 export default function Home() {
   const router = useRouter();
-  const [letters, setLetters] = useState<FloatingLetter[]>([]);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const animationRef = useRef<number | null>(null);
-
   const text = "It's Complicated";
-
-  // Initialize letters on client mount
-  useEffect(() => {
-    // Set initial letters centered on screen
-    const newLetters: FloatingLetter[] = text.split('').map((letter, i) => ({
+  
+  const [letters, setLetters] = useState<FloatingLetter[]>(
+    text.split('').map((letter, i) => ({
       id: `${i}`,
       letter,
-      x: 0, // Will be positioned with CSS grid
+      x: 0,
       y: 0,
       rotation: 0,
       opacity: 1,
-    }));
-    setLetters(newLetters);
-  }, []);
+    }))
+  );
+  
+  const [isAnimating, setIsAnimating] = useState(false);
+  const animationRef = useRef<number | null>(null);
 
   const handleClickLetters = () => {
     if (isAnimating || letters.length === 0) return;
-
     setIsAnimating(true);
 
-    // Create velocities for each letter
     const velocities = letters.map(() => ({
       vx: (Math.random() - 0.5) * 20,
       vy: -Math.random() * 10 - 5,
@@ -48,14 +42,13 @@ export default function Home() {
 
     const animate = () => {
       frame++;
-
       setLetters((prev) =>
         prev.map((letter, idx) => {
           const vel = velocities[idx];
           return {
             ...letter,
             x: vel.vx * frame * 0.3,
-            y: vel.vy * frame * 0.3 + frame * frame * 0.05, // gravity
+            y: vel.vy * frame * 0.3 + frame * frame * 0.05,
             rotation: frame * 5,
             opacity: Math.max(0, 1 - frame / maxFrames),
           };
@@ -65,7 +58,6 @@ export default function Home() {
       if (frame < maxFrames) {
         animationRef.current = requestAnimationFrame(animate);
       } else {
-        // Navigate after animation
         setTimeout(() => router.push('/offerings'), 200);
       }
     };
@@ -74,7 +66,6 @@ export default function Home() {
     animate();
   };
 
-  // Cleanup
   useEffect(() => {
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
@@ -82,10 +73,10 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-300 via-sky-100 to-sky-50 flex flex-col items-center justify-center overflow-hidden relative cursor-pointer group"
+    <div 
+      className="min-h-screen bg-gradient-to-b from-sky-300 via-sky-100 to-sky-50 flex flex-col items-center justify-center overflow-hidden relative cursor-pointer"
       onClick={handleClickLetters}
     >
-      {/* Sky clouds background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <svg className="w-full h-full" viewBox="0 0 1000 600" preserveAspectRatio="none">
           <path
@@ -103,42 +94,40 @@ export default function Home() {
         </svg>
       </div>
 
-      {/* Main content - relative positioned for letter animations */}
-      <div className="relative z-10">
-        {/* Letters flex container - centered baseline */}
+      <div className="relative z-10 text-center">
         <div
-          className="flex gap-0 items-baseline justify-center"
+          className="flex gap-0 items-baseline justify-center mb-8"
           style={{
             transform: isAnimating ? 'scale(0.9)' : 'scale(1)',
             transition: isAnimating ? 'none' : 'transform 0.3s ease-out',
           }}
         >
-          {letters.map((letter, idx) => (
-            <div
+          {letters.map((letter) => (
+            <span
               key={letter.id}
-              className="font-black pointer-events-none"
               style={{
                 fontSize: '120px',
                 fontFamily: '"Fredoka", sans-serif',
                 fontWeight: 900,
-                background: 'linear-gradient(135deg, #87CEEB, #E0F6FF)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                filter: 'drop-shadow(0 4px 6px rgba(135, 206, 235, 0.3))',
+                color: '#0ea5e9',
+                textShadow: '0 4px 8px rgba(14, 165, 233, 0.5)',
+                display: 'inline-block',
                 transform: `translateX(${letter.x}px) translateY(${letter.y}px) rotate(${letter.rotation}deg)`,
                 opacity: letter.opacity,
-                transition: isAnimating ? 'none' : 'transform 0.3s ease-out',
+                transition: isAnimating ? 'none' : 'all 0.05s ease-out',
+                lineHeight: '1',
+                margin: '0 -5px',
+                padding: '0',
+                willChange: 'transform, opacity',
               }}
             >
               {letter.letter}
-            </div>
+            </span>
           ))}
         </div>
 
-        {/* Click hint */}
         {!isAnimating && (
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+          <div className="text-center opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none">
             <p className="text-xl font-semibold text-sky-700">Click to continue</p>
             <p className="text-sm text-sky-600 mt-1">↓ Let the wind blow ↓</p>
           </div>
