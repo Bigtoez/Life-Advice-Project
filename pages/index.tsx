@@ -1,23 +1,146 @@
-﻿import React, { useState } from "react";
-import Link from "next/link";
+﻿import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+
+interface FloatingLetter {
+  id: string;
+  letter: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+}
 
 export default function Home() {
-  const sessionTypes = [
-    { id: "pattern-break", title: "The Pattern", hook: "Why Do I Keep Choosing This?", description: "You've had the same fight with 3 different people.", duration: "20 min", price: "$7", emoji: "🔄" },
-    { id: "after-fight", title: "After the Fight", hook: "What Was That Actually About?", description: "The fight wasn't really about what you thought.", duration: "20 min", price: "$7", emoji: "💔" },
-    { id: "breakup", title: "Breakup Breakdown", hook: "Processing What Actually Happened", description: "Breakups hurt. Understanding helps.", duration: "20 min", price: "$7", emoji: "💔" },
-    { id: "group", title: "Group Session", hook: "You're Not Alone in This", description: "Your friends have the same patterns.", duration: "30 min", price: "$8", emoji: "👥" },
-  ];
+  const router = useRouter();
+  const [showLetters, setShowLetters] = useState(true);
+  const [letters, setLetters] = useState<FloatingLetter[]>([]);
+  const [windPlaying, setWindPlaying] = useState(false);
+
+  const text = "It's Complicated";
+
+  useEffect(() => {
+    if (!showLetters) return;
+
+    // Initialize letters
+    const newLetters: FloatingLetter[] = text.split('').map((letter, i) => ({
+      id: `${i}`,
+      letter,
+      x: 50 + (i - text.length / 2) * 4,
+      y: 40,
+      vx: 0,
+      vy: 0,
+    }));
+    setLetters(newLetters);
+  }, [showLetters]);
+
+  const handleClickLetters = async () => {
+    // Play wind sound
+    setWindPlaying(true);
+
+    // Animate letters blowing away
+    const animateLetters = () => {
+      let frame = 0;
+      const maxFrames = 120; // 2 seconds at 60fps
+
+      const interval = setInterval(() => {
+        frame++;
+        setLetters((prev) =>
+          prev.map((letter) => {
+            const vx = (Math.random() - 0.5) * 3; // Random wind direction
+            const vy = -Math.random() * 2 - 1; // Always moving up
+
+            return {
+              ...letter,
+              x: letter.x + vx * frame * 0.1,
+              y: letter.y + vy * frame * 0.1,
+            };
+          })
+        );
+
+        if (frame >= maxFrames) {
+          clearInterval(interval);
+          setWindPlaying(false);
+          router.push('/offerings');
+        }
+      }, 16);
+    };
+
+    animateLetters();
+  };
+
+  if (!showLetters && !windPlaying) {
+    return null;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <nav className="border-b border-slate-700"><div className="max-w-6xl mx-auto px-6 py-4"><h1 className="text-3xl font-black text-white">🔀 It's Complicated</h1><div className="text-sm text-slate-300">It's complicated. Let's talk about it.'t have to be.</div></div></nav>
-      <section className="max-w-6xl mx-auto px-6 py-20 text-center"><h2 className="text-6xl font-black text-white mb-6">Why do you keep choosing the same person?</h2><p className="text-xl text-slate-300 mb-10">It's Complicated unravels what's actually happening. In 20 minutes, you'll understand patterns you've been repeating for years.</p><Link href="/session/pattern-break"><button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-bold">Start a Session →</button></Link></section>
-      <section className="bg-slate-800/30 border-y border-slate-700 py-12"><div className="max-w-6xl mx-auto px-6"><div className="grid md:grid-cols-3 gap-8"><div className="text-center"><p className="text-slate-300 italic">"I just realized I'm the toxic one"</p><p className="text-slate-500 text-sm">— Sarah, 24</p></div><div className="text-center"><p className="text-slate-300 italic">"Why do I keep choosing emotionally unavailable people?"</p><p className="text-slate-500 text-sm">— James, 26</p></div><div className="text-center"><p className="text-slate-300 italic">"That made more sense than 2 years of therapy"</p><p className="text-slate-500 text-sm">— Alex, 28</p></div></div></div></section>
-      <section className="max-w-6xl mx-auto px-6 py-16"><h3 className="text-4xl font-black text-white mb-12 text-center">What's on your mind?</h3><div className="grid md:grid-cols-2 gap-6">{sessionTypes.map(s => (<Link key={s.id} href={`/session/${s.id}`}><div className="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-purple-500 cursor-pointer"><div className="flex justify-between mb-4"><div><div className="text-sm text-purple-400 font-bold mb-1 uppercase">{s.hook}</div><h3 className="text-2xl font-black text-white">{s.title}</h3></div><div className="text-3xl">{s.emoji}</div></div><p className="text-slate-300 mb-6">{s.description}</p><div className="flex justify-between pt-4 border-t border-slate-700"><span className="text-slate-400">{s.duration}</span><span className="text-purple-400 font-bold">{s.price}</span></div></div></Link>))}</div></section>
-      <section className="bg-slate-800/50 border-t border-slate-700 py-16"><div className="max-w-6xl mx-auto px-6"><h3 className="text-4xl font-black text-white mb-12 text-center">Why It's Complicated Works</h3><div className="grid md:grid-cols-3 gap-8"><div className="bg-slate-700/30 rounded-lg p-6"><h4 className="font-black text-white mb-3">💭 Real Talk</h4><p className="text-slate-400">You understand exactly why you keep repeating these patterns.</p></div><div className="bg-slate-700/30 rounded-lg p-6"><h4 className="font-black text-white mb-3">⏱️ 20 minutes Changes Everything</h4><p className="text-slate-400">No fluff. Real breakthroughs.</p></div><div className="bg-slate-700/30 rounded-lg p-6"><h4 className="font-black text-white mb-3">🔒 Completely Private</h4><p className="text-slate-400">What you share stays with you.</p></div></div></div></section>
-      <section className="max-w-4xl mx-auto px-6 py-16 text-center"><h3 className="text-4xl font-black text-white mb-4">Ready to actually talk about it??</h3><p className="text-xl text-slate-300 mb-8">It's complicated. But talking about it helps.</p><Link href="/session/pattern-break"><button className="bg-purple-600 hover:bg-purple-700 text-white px-10 py-4 rounded-lg font-bold text-lg">Start Your Session</button></Link></section>
-      <footer className="border-t border-slate-700 text-center py-8 text-slate-500 text-sm"><p>It's Complicated — Understand your patterns. Transform your relationships.</p></footer>
+    <div className="min-h-screen bg-gradient-to-b from-sky-300 via-sky-100 to-sky-50 flex items-center justify-center overflow-hidden relative">
+      {/* Sky clouds background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <svg className="w-full h-full" viewBox="0 0 1000 600" preserveAspectRatio="none">
+          <path
+            d="M0,200 Q250,150 500,200 T1000,200"
+            stroke="rgba(255,255,255,0.3)"
+            strokeWidth="2"
+            fill="none"
+          />
+          <path
+            d="M0,400 Q250,350 500,400 T1000,400"
+            stroke="rgba(255,255,255,0.2)"
+            strokeWidth="2"
+            fill="none"
+          />
+        </svg>
+      </div>
+
+      {/* Wind sound effect */}
+      {windPlaying && (
+        <audio autoPlay>
+          <source
+            src="data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=="
+            type="audio/wav"
+          />
+        </audio>
+      )}
+
+      {/* Floating Letters */}
+      {showLetters && (
+        <div
+          className="relative w-full h-full flex items-center justify-center cursor-pointer group"
+          onClick={handleClickLetters}
+        >
+          <div className="relative w-96 h-40">
+            {letters.map((letter, idx) => (
+              <div
+                key={letter.id}
+                className="absolute text-9xl font-black transition-none"
+                style={{
+                  left: `${letter.x}%`,
+                  top: `${letter.y}%`,
+                  transform: `translate(-50%, -50%) rotate(${(idx * 5) % 360}deg)`,
+                  fontSize: '120px',
+                  fontFamily: '"Fredoka", sans-serif',
+                  fontWeight: 900,
+                  background: `linear-gradient(135deg, #87CEEB, #E0F6FF)`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  filter: 'drop-shadow(0 4px 6px rgba(135, 206, 235, 0.3))',
+                  opacity: windPlaying ? 0 : 1,
+                  transition: windPlaying ? 'none' : 'opacity 0.3s ease-out',
+                }}
+              >
+                {letter.letter}
+              </div>
+            ))}
+          </div>
+
+          {/* Click hint */}
+          <div className="absolute bottom-20 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <p className="text-xl font-semibold text-sky-700">Click to continue</p>
+            <p className="text-sm text-sky-600 mt-1">↓ Let the wind blow ↓</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
