@@ -1,13 +1,14 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 
 interface FloatingLetter {
   id: string;
   letter: string;
-  x: number;
-  y: number;
+  x: number; // pixels from left
+  y: number; // pixels from top
   vx: number;
   vy: number;
+  rotation: number;
 }
 
 export default function Home() {
@@ -15,65 +16,85 @@ export default function Home() {
   const [showLetters, setShowLetters] = useState(true);
   const [letters, setLetters] = useState<FloatingLetter[]>([]);
   const [windPlaying, setWindPlaying] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const text = "It's Complicated";
 
   useEffect(() => {
-    if (!showLetters) return;
+    if (!showLetters || !containerRef.current) return;
 
-    // Initialize letters
+    const container = containerRef.current;
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+    const centerX = containerWidth / 2;
+    const centerY = containerHeight / 2;
+
+    // Initialize letters positioned in center
+    const letterWidth = 80; // approximate width per letter
+    const totalWidth = text.length * letterWidth;
+    const startX = centerX - totalWidth / 2;
+
     const newLetters: FloatingLetter[] = text.split('').map((letter, i) => ({
       id: `${i}`,
       letter,
-      x: 50 + (i - text.length / 2) * 4,
-      y: 40,
+      x: startX + i * letterWidth,
+      y: centerY - 60,
       vx: 0,
       vy: 0,
+      rotation: (i * 5) % 360,
     }));
     setLetters(newLetters);
-  }, [showLetters]);
+  }, [showLetters, text]);
 
-  const handleClickLetters = async () => {
-    // Play wind sound
+  const handleClickLetters = () => {
+    if (isAnimating) return;
+
+    setIsAnimating(true);
     setWindPlaying(true);
 
-    // Animate letters blowing away
-    const animateLetters = () => {
-      let frame = 0;
-      const maxFrames = 120; // 2 seconds at 60fps
+    // Initialize velocities for wind effect
+    const initialLetters = letters.map((letter) => ({
+      ...letter,
+      vx: (Math.random() - 0.5) * 8, // Stronger horizontal wind
+      vy: -Math.random() * 4 - 2, // Upward movement
+    }));
 
-      const interval = setInterval(() => {
-        frame++;
-        setLetters((prev) =>
-          prev.map((letter) => {
-            const vx = (Math.random() - 0.5) * 3; // Random wind direction
-            const vy = -Math.random() * 2 - 1; // Always moving up
+    let frame = 0;
+    const maxFrames = 120; // 2 seconds at 60fps
+    const startTime = Date.now();
 
-            return {
-              ...letter,
-              x: letter.x + vx * frame * 0.1,
-              y: letter.y + vy * frame * 0.1,
-            };
-          })
-        );
+    const animate = () => {
+      frame++;
 
-        if (frame >= maxFrames) {
-          clearInterval(interval);
-          setWindPlaying(false);
-          router.push('/offerings');
-        }
-      }, 16);
+      setLetters((prev) =>
+        prev.map((letter, idx) => ({
+          ...letter,
+          x: initialLetters[idx].x + initialLetters[idx].vx * frame * 0.8,
+          y: initialLetters[idx].y + initialLetters[idx].vy * frame * 0.8 + (frame * frame * 0.02), // gravity
+          rotation: letter.rotation + frame * 3,
+          vy: initialLetters[idx].vy - 0.1, // gravity effect
+        }))
+      );
+
+      if (frame < maxFrames) {
+        requestAnimationFrame(animate);
+      } else {
+        setWindPlaying(false);
+        setIsAnimating(false);
+        // Navigate after animation completes
+        setTimeout(() => router.push('/offerings'), 300);
+      }
     };
 
-    animateLetters();
+    animate();
   };
 
-  if (!showLetters && !windPlaying) {
-    return null;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-300 via-sky-100 to-sky-50 flex items-center justify-center overflow-hidden relative">
+    <div
+      ref={containerRef}
+      className="min-h-screen bg-gradient-to-b from-sky-300 via-sky-100 to-sky-50 flex items-center justify-center overflow-hidden relative"
+    >
       {/* Sky clouds background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <svg className="w-full h-full" viewBox="0 0 1000 600" preserveAspectRatio="none">
@@ -105,18 +126,26 @@ export default function Home() {
       {/* Floating Letters */}
       {showLetters && (
         <div
-          className="relative w-full h-full flex items-center justify-center cursor-pointer group"
+          className={`absolute inset-0 flex items-center justify-center cursor-pointer group ${
+            isAnimating ? '' : 'hover:scale-110'
+          }`}
           onClick={handleClickLetters}
+          style={{
+            transition: isAnimating ? 'none' : 'transform 0.3s ease-out',
+          }}
         >
-          <div className="relative w-96 h-40">
-            {letters.map((letter, idx) => (
+          {/* Letters container */}
+          <div className="relative w-full h-full">
+            {letters.map((letter) => (
               <div
                 key={letter.id}
-                className="absolute text-9xl font-black transition-none"
+                className="absolute font-black pointer-events-none"
                 style={{
-                  left: `${letter.x}%`,
-                  top: `${letter.y}%`,
-                  transform: `translate(-50%, -50%) rotate(${(idx * 5) % 360}deg)`,
+                  left: `${letter.x}px`,
+                  top: `${letter.y}px`,
+                  transform: `translate(-50%, -50%) rotate(${letter.rotation}deg) ${
+                    windPlaying ? 'scale(0.8)' : 'scale(1)'
+                  }`,
                   fontSize: '120px',
                   fontFamily: '"Fredoka", sans-serif',
                   fontWeight: 900,
@@ -126,7 +155,8 @@ export default function Home() {
                   backgroundClip: 'text',
                   filter: 'drop-shadow(0 4px 6px rgba(135, 206, 235, 0.3))',
                   opacity: windPlaying ? 0 : 1,
-                  transition: windPlaying ? 'none' : 'opacity 0.3s ease-out',
+                  transition: windPlaying ? 'none' : 'opacity 0.3s ease-out, transform 0.3s ease-out',
+                  willChange: 'transform, opacity',
                 }}
               >
                 {letter.letter}
@@ -135,10 +165,12 @@ export default function Home() {
           </div>
 
           {/* Click hint */}
-          <div className="absolute bottom-20 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <p className="text-xl font-semibold text-sky-700">Click to continue</p>
-            <p className="text-sm text-sky-600 mt-1">↓ Let the wind blow ↓</p>
-          </div>
+          {!isAnimating && (
+            <div className="absolute bottom-20 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+              <p className="text-xl font-semibold text-sky-700">Click to continue</p>
+              <p className="text-sm text-sky-600 mt-1">↓ Let the wind blow ↓</p>
+            </div>
+          )}
         </div>
       )}
     </div>
