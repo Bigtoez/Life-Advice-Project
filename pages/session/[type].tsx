@@ -80,8 +80,13 @@ export default function SessionPage() {
   if (!type) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-300 via-sky-100 to-sky-50 flex flex-col">
-      <div className="bg-sky-200 border-b-4 border-white px-6 py-4 shadow">
+    <div 
+      className="min-h-screen flex flex-col"
+      style={{
+        background: 'linear-gradient(135deg, #87CEEB 0%, #E0F6FF 50%, #FFB6D9 100%)',
+      }}
+    >
+      <div className="bg-white bg-opacity-70 border-b-4 border-white px-6 py-4 shadow">
         <div className="max-w-2xl mx-auto flex justify-between items-center">
           <Link href="/sessions-menu"><span className="text-sm text-sky-700 font-bold">← Back</span></Link>
           <h2 className="text-3xl font-black text-sky-900">{TITLES[type as string]}</h2>
@@ -103,7 +108,7 @@ export default function SessionPage() {
         </div>
       </div>
 
-      <div className="bg-sky-200 border-t-4 border-white px-6 py-6">
+      <div className="bg-white bg-opacity-70 border-t-4 border-white px-6 py-6">
         <div className="max-w-2xl mx-auto flex gap-4">
           <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && send()} placeholder="Share..." className="flex-1 bg-white border-2 border-sky-300 rounded-full px-6 py-3" disabled={loading}/>
           <button onClick={send} disabled={loading} className="bg-sky-500 text-white px-8 py-3 rounded-full font-bold">Send</button>

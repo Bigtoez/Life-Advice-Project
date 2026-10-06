@@ -59,11 +59,26 @@ export default function SessionsMenuPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-300 via-sky-100 to-sky-50 relative overflow-hidden">
+    <div 
+      className="min-h-screen relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, #87CEEB 0%, #E0F6FF 50%, #FFB6D9 100%)',
+      }}
+    >
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-20 bg-white rounded-full opacity-40 animate-pulse"></div>
-        <div className="absolute top-32 right-10 w-40 h-24 bg-white rounded-full opacity-30 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-32 left-1/3 w-36 h-22 bg-white rounded-full opacity-35 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <svg className="w-full h-full" viewBox="0 0 1000 600" preserveAspectRatio="none">
+          <ellipse cx="150" cy="100" rx="120" ry="60" fill="rgba(255, 192, 203, 0.4)" />
+          <ellipse cx="200" cy="80" rx="100" ry="50" fill="rgba(255, 182, 193, 0.5)" />
+          <ellipse cx="100" cy="120" rx="90" ry="45" fill="rgba(255, 202, 213, 0.4)" />
+          
+          <ellipse cx="800" cy="150" rx="140" ry="70" fill="rgba(255, 192, 203, 0.4)" />
+          <ellipse cx="880" cy="130" rx="110" ry="55" fill="rgba(255, 182, 193, 0.5)" />
+          <ellipse cx="750" cy="170" rx="100" ry="50" fill="rgba(255, 202, 213, 0.4)" />
+          
+          <ellipse cx="400" cy="500" rx="130" ry="65" fill="rgba(255, 192, 203, 0.35)" />
+          <ellipse cx="470" cy="480" rx="105" ry="52" fill="rgba(255, 182, 193, 0.45)" />
+          <ellipse cx="350" cy="520" rx="95" ry="48" fill="rgba(255, 202, 213, 0.35)" />
+        </svg>
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-12">
