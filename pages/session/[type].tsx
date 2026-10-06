@@ -23,7 +23,6 @@ export default function SessionPage() {
   const router = useRouter();
   const { type } = router.query;
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,7 +44,6 @@ export default function SessionPage() {
           sessionType: type,
         });
         setSessionId(res.data.sessionId);
-        setSystemPrompt(res.data.systemPrompt);
         setMessages([{ role: 'assistant', content: INTROS[type as string] || 'Welcome.' }]);
         timerRef.current = setInterval(() => {
           setTimeRemaining((p) => (p > 0 ? p - 1 : 0));
@@ -59,15 +57,16 @@ export default function SessionPage() {
   }, [type]);
 
   const send = async () => {
-    if (!inputValue.trim() || !sessionId || !systemPrompt || loading) return;
-    const msg = inputValue;
+    if (!inputValue.trim() || !sessionId || loading) return;
+    const msg = inputValue.slice(0, 500);
+    const history = messages.slice(1);
     setInputValue('');
     setMessages((p) => [...p, { role: 'user', content: msg }]);
     setLoading(true);
     try {
       const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       const res = await axios.post(`${url}/api/sessions/${sessionId}/message`,
-        { message: msg, systemPrompt }
+        { message: msg, sessionType: type, history }
       );
       setMessages((p) => [...p, { role: 'assistant', content: res.data.response }]);
     } catch (e) {

@@ -1,84 +1,56 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Anthropic } from '@anthropic-ai/sdk';
+import { buildSystemPrompt, VALID_TYPES } from '../../../../lib/systemPrompt';
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// In-memory storage
-const sessions = new Map<string, any>();
+const MAX_MESSAGE_CHARS = 500;
+const MAX_HISTORY = 20;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const { sessionType, history, message } = req.body || {};
+
+  if (!VALID_TYPES.includes(sessionType) || typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
+  if (message.length > MAX_MESSAGE_CHARS) {
+    return res.status(400).json({ error: 'Message too long' });
+  }
+
+  const past = Array.isArray(history) ? history.slice(-MAX_HISTORY) : [];
+  const cleanHistory = past
+    .filter(
+      (m: any) =>
+        m &&
+        (m.role === 'user' || m.role === 'assistant') &&
+        typeof m.content === 'string'
+    )
+    .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: String(m.content).slice(0, 2000) }));
+
+  const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [
+    ...cleanHistory,
+    { role: 'user', content: message },
+  ];
+  // The API requires the first message to be from the user
+  while (messages.length && messages[0].role !== 'user') messages.shift();
+
   try {
-    const { sessionId } = req.query;
-    const { message, systemPrompt } = req.body;
-
-    if (!sessionId || !message || !systemPrompt) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    // Get or create session
-    let session = sessions.get(sessionId as string) || {
-      id: sessionId,
-      messages: [],
-    };
-
-    // Add user message
-    session.messages.push({
-      role: 'user',
-      content: message,
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      system: buildSystemPrompt(sessionType),
+      messages,
     });
-
-    try {
-      // Call Anthropic API
-      const response = await client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages: session.messages,
-      });
-
-      const assistantMessage = response.content[0]?.type === 'text' ? response.content[0].text : '';
-
-      // Add assistant response to session
-      session.messages.push({
-        role: 'assistant',
-        content: assistantMessage,
-      });
-
-      // Store session
-      sessions.set(sessionId as string, session);
-
-      return res.status(200).json({
-        response: assistantMessage,
-        sessionId,
-      });
-    } catch (apiError: any) {
-      console.error('Anthropic API error:', {
-        status: apiError?.status,
-        message: apiError?.message,
-        error: apiError?.error
-      });
-      
-      if (apiError?.status === 401) {
-        return res.status(401).json({ error: 'Invalid API key' });
-      }
-      
-      if (apiError?.status === 429) {
-        return res.status(429).json({ error: 'Rate limit exceeded' });
-      }
-
-      return res.status(500).json({ 
-        error: 'Failed to get AI response', 
-        details: apiError?.message || JSON.stringify(apiError)
-      });
-    }
-  } catch (error) {
-    console.error('Error processing message:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    const text = response.content[0]?.type === 'text' ? response.content[0].text : '';
+    return res.status(200).json({ response: text });
+  } catch (apiError: any) {
+    console.error('Anthropic API error:', apiError?.status, apiError?.message);
+    return res.status(500).json({ error: 'Failed to get response' });
   }
 }
