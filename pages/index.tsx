@@ -18,34 +18,46 @@ export default function Home() {
   const [windPlaying, setWindPlaying] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number | null>(null);
 
   const text = "It's Complicated";
 
+  // Initialize letters on mount, using window dimensions
   useEffect(() => {
-    if (!showLetters || !containerRef.current) return;
+    if (typeof window === 'undefined') return;
 
-    const container = containerRef.current;
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-    const centerX = containerWidth / 2;
-    const centerY = containerHeight / 2;
+    const initLetters = () => {
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      const centerX = windowWidth / 2;
+      const centerY = windowHeight / 2;
 
-    // Initialize letters positioned in center
-    const letterWidth = 80; // approximate width per letter
-    const totalWidth = text.length * letterWidth;
-    const startX = centerX - totalWidth / 2;
+      // Initialize letters positioned in center
+      const letterWidth = 85; // approximate width per letter
+      const totalWidth = text.length * letterWidth;
+      const startX = centerX - totalWidth / 2;
 
-    const newLetters: FloatingLetter[] = text.split('').map((letter, i) => ({
-      id: `${i}`,
-      letter,
-      x: startX + i * letterWidth,
-      y: centerY - 60,
-      vx: 0,
-      vy: 0,
-      rotation: (i * 5) % 360,
-    }));
-    setLetters(newLetters);
-  }, [showLetters, text]);
+      const newLetters: FloatingLetter[] = text.split('').map((letter, i) => ({
+        id: `${i}`,
+        letter,
+        x: startX + i * letterWidth,
+        y: centerY - 60,
+        vx: 0,
+        vy: 0,
+        rotation: (i * 5) % 360,
+      }));
+      setLetters(newLetters);
+    };
+
+    // Wait a bit for DOM to be ready
+    const timer = setTimeout(initLetters, 100);
+    window.addEventListener('resize', initLetters);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', initLetters);
+    };
+  }, [text]);
 
   const handleClickLetters = () => {
     if (isAnimating) return;
@@ -53,42 +65,62 @@ export default function Home() {
     setIsAnimating(true);
     setWindPlaying(true);
 
-    // Initialize velocities for wind effect
+    // Store initial positions
     const initialLetters = letters.map((letter) => ({
       ...letter,
-      vx: (Math.random() - 0.5) * 8, // Stronger horizontal wind
+      vx: (Math.random() - 0.5) * 8, // Random horizontal wind
       vy: -Math.random() * 4 - 2, // Upward movement
     }));
 
     let frame = 0;
     const maxFrames = 120; // 2 seconds at 60fps
-    const startTime = Date.now();
 
     const animate = () => {
       frame++;
 
       setLetters((prev) =>
-        prev.map((letter, idx) => ({
-          ...letter,
-          x: initialLetters[idx].x + initialLetters[idx].vx * frame * 0.8,
-          y: initialLetters[idx].y + initialLetters[idx].vy * frame * 0.8 + (frame * frame * 0.02), // gravity
-          rotation: letter.rotation + frame * 3,
-          vy: initialLetters[idx].vy - 0.1, // gravity effect
-        }))
+        prev.map((letter, idx) => {
+          const initialLetter = initialLetters[idx];
+          return {
+            ...letter,
+            x: initialLetter.x + initialLetter.vx * frame * 0.8,
+            y: initialLetter.y + initialLetter.vy * frame * 0.8 + frame * frame * 0.02, // gravity effect
+            rotation: letter.rotation + frame * 3,
+            vy: initialLetter.vy - 0.1, // Gravity accumulates
+          };
+        })
       );
 
       if (frame < maxFrames) {
-        requestAnimationFrame(animate);
+        animationRef.current = requestAnimationFrame(animate);
       } else {
+        // Animation complete
         setWindPlaying(false);
         setIsAnimating(false);
+        animationRef.current = null;
         // Navigate after animation completes
-        setTimeout(() => router.push('/offerings'), 300);
+        setTimeout(() => {
+          router.push('/offerings');
+        }, 300);
       }
     };
 
+    // Cancel any previous animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+
     animate();
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div
