@@ -53,7 +53,9 @@ export default function SessionPage() {
       } catch (e) { console.error(e); }
     };
     init();
-    return () => timerRef.current && clearInterval(timerRef.current);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [type]);
 
   const send = async () => {
