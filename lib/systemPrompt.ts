@@ -1,7 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const VALID_TYPES = ['pattern-break', 'after-fight', 'breakup', 'group'];
+export const VALID_TYPES = [
+  'relationships',
+  'family',
+  'breakup',
+  'life',
+  'pattern-break',
+  'after-fight',
+  'group',
+];
 
 const SAFETY_RULES = `
 ## Hard rules (always apply)
