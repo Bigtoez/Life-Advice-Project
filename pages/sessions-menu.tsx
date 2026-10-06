@@ -50,7 +50,7 @@ export default function SessionsMenuPage() {
       id: 'group',
       title: 'Group Session',
       emoji: '👥',
-      hook: 'You're Not Alone in This',
+      hook: "You're Not Alone in This",
       description: "Your friends have the same patterns.",
       duration: '30 min',
       price: '$8',
